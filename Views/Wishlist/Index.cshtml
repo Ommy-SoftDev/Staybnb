@@ -1,0 +1,25 @@
+@model List<Staybnb.Models.HostProperty>
+@{
+    ViewData["Title"] = "Wishlist";
+}
+
+<h1>Wishlist</h1>
+<p class="sb-muted">Stays you have saved for later.</p>
+
+@if (!Model.Any())
+{
+    <div class="sb-card sb-empty">
+        <h2>Nothing saved yet</h2>
+        <p class="sb-muted">Tap the heart on a stay to save it here.</p>
+        <a asp-controller="Home" asp-action="Index" class="btn btn-sb">Find a stay</a>
+    </div>
+}
+else
+{
+    <div class="sb-grid">
+        @foreach (var p in Model)
+        {
+            <partial name="_PropertyCard" model="p" view-data="ViewData" />
+        }
+    </div>
+}

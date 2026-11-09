@@ -1,0 +1,59 @@
+@model Staybnb.ViewModels.GalleryVM
+@{
+    ViewData["Title"] = "Find your next stay";
+    ViewData["SavedIds"] = Model.SavedIds;
+    var isGuest = User.IsInRole("Guest");
+    var isHost = User.IsInRole("Host");
+    var isAdmin = User.IsInRole("Admin") || User.IsInRole("SuperAdmin");
+    var signedIn = User.Identity?.IsAuthenticated == true;
+
+    string? becomeUrl = null;
+    if (isGuest) becomeUrl = Url.Action("Apply", "HostApplication");
+    else if (isHost) becomeUrl = Url.Action("AddProperty", "Host");
+    else if (!signedIn) becomeUrl = Url.Action("Login", "Account", new { returnUrl = Url.Action("Apply", "HostApplication") });
+
+    var checkInText = Model.CheckIn?.ToString("yyyy-MM-dd");
+    var checkOutText = Model.CheckOut?.ToString("yyyy-MM-dd");
+}
+
+<div class="sb-hero">
+    <h1>Relax. Unwind. Choose your next stay.</h1>
+</div>
+
+<div class="sb-tabs">
+    <a class="sb-tab active" asp-controller="Home" asp-action="Index">Properties</a>
+    @if (becomeUrl != null)
+    {
+        <a class="sb-tab" href="@becomeUrl">Become a Host</a>
+    }
+</div>
+
+<div class="sb-chips">
+    <a class="sb-chip @(string.IsNullOrEmpty(Model.SelectedType) ? "active" : "")"
+       asp-controller="Home" asp-action="Index"
+       asp-route-city="@Model.SelectedCity" asp-route-checkIn="@checkInText" asp-route-checkOut="@checkOutText" asp-route-guests="@Model.Guests">All types</a>
+    @foreach (var t in Model.Types)
+    {
+        <a class="sb-chip @(Model.SelectedType == t ? "active" : "")"
+           asp-controller="Home" asp-action="Index" asp-route-type="@t"
+           asp-route-city="@Model.SelectedCity" asp-route-checkIn="@checkInText" asp-route-checkOut="@checkOutText" asp-route-guests="@Model.Guests">@t</a>
+    }
+</div>
+
+@if (!Model.Properties.Any())
+{
+    <div class="sb-card sb-empty">
+        <h2>No stays found</h2>
+        <p class="sb-muted">Try a different city, dates, guests or property type.</p>
+        <a asp-controller="Home" asp-action="Index" class="btn btn-sb">Clear filters</a>
+    </div>
+}
+else
+{
+    <div class="sb-grid">
+        @foreach (var p in Model.Properties)
+        {
+            <partial name="_PropertyCard" model="p" view-data="ViewData" />
+        }
+    </div>
+}

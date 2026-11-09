@@ -1,0 +1,44 @@
+@model List<Staybnb.Models.Review>
+@{
+    ViewData["Title"] = "Reviews";
+    var average = Model.Any() ? Model.Average(r => r.Rating) : 0;
+}
+
+<div class="sb-stats" style="margin-top:0">
+    <div class="sb-stat">
+        <div class="sb-stat-label">Average rating</div>
+        <div class="sb-stat-value">@average.ToString("0.0")</div>
+    </div>
+    <div class="sb-stat">
+        <div class="sb-stat-label">Total reviews</div>
+        <div class="sb-stat-value">@Model.Count</div>
+    </div>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="sb-card sb-empty">
+        <h2>No reviews yet</h2>
+        <p class="sb-muted">Reviews from your guests will show up here.</p>
+    </div>
+}
+else
+{
+    <div class="sb-card">
+        @foreach (var r in Model)
+        {
+            <div class="sb-review">
+                <div class="d-flex justify-content-between flex-wrap">
+                    <strong>@Staybnb.Services.NameHelper.Display(r.Reviewer)</strong>
+                    <span class="sb-muted">@r.CreatedAt.ToString("dd MMM yyyy")</span>
+                </div>
+                <div class="sb-muted">@r.Property.Title</div>
+                <div><span class="sb-star">&#9733;</span> @r.Rating / 5</div>
+                @if (!string.IsNullOrWhiteSpace(r.Comment))
+                {
+                    <div>@r.Comment</div>
+                }
+            </div>
+        }
+    </div>
+}

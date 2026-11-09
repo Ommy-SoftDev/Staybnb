@@ -1,0 +1,58 @@
+@model List<Staybnb.ViewModels.UserRowVM>
+@{
+    ViewData["Title"] = "Users";
+}
+
+<h1>Users</h1>
+<p class="sb-muted">Find a guest and promote them to Admin. Only SuperAdmins can do this.</p>
+
+<form asp-action="Users" method="get" class="d-flex gap-2 mb-3">
+    <input type="text" name="q" value="@ViewBag.Query" class="form-control" placeholder="Search by name or email" />
+    <button type="submit" class="btn btn-sb">Search</button>
+</form>
+
+@if (!Model.Any())
+{
+    <div class="sb-card sb-empty">
+        <h2>No users found</h2>
+        <p class="sb-muted">Try a different name or email.</p>
+    </div>
+}
+else
+{
+    <div class="sb-card">
+        <table class="sb-table">
+            <thead>
+                <tr><th>Name</th><th>Email</th><th>Role</th><th></th><th>Reset password</th></tr>
+            </thead>
+            <tbody>
+                @foreach (var u in Model)
+                {
+                    <tr>
+                        <td>@u.Name</td>
+                        <td>@u.Email</td>
+                        <td>@string.Join(", ", u.Roles)</td>
+                        <td>
+                            @if (u.Roles.Contains("Guest"))
+                            {
+                                <form asp-action="PromoteToAdmin" asp-route-id="@u.Id" method="post"
+                                      onsubmit="return confirm('Promote this guest to Admin?');">
+                                    <button type="submit" class="btn btn-sb-outline btn-sm">Promote to Admin</button>
+                                </form>
+                            }
+                        </td>
+                        <td>
+                            @if (!u.Roles.Contains("SuperAdmin"))
+                            {
+                                <form asp-action="ResetPassword" asp-route-id="@u.Id" method="post" class="d-flex gap-1">
+                                    <input type="text" name="newPassword" class="form-control form-control-sm" placeholder="New password" />
+                                    <button type="submit" class="btn btn-sb-outline btn-sm">Reset</button>
+                                </form>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

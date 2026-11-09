@@ -1,0 +1,37 @@
+@model Staybnb.ViewModels.ConversationVM
+@{
+    ViewData["Title"] = "Conversation";
+}
+
+<p><a asp-action="Inbox">Back to messages</a></p>
+
+<h1>@Model.OtherName</h1>
+
+<div class="sb-card mt-3">
+    @if (!Model.Messages.Any())
+    {
+        <p class="sb-muted mb-0">No messages yet. Say hello below.</p>
+    }
+    else
+    {
+        <div class="sb-thread">
+            @foreach (var m in Model.Messages)
+            {
+                var mine = m.SenderId == Model.CurrentUserId;
+                <div class="sb-bubble @(mine ? "mine" : "theirs")">
+                    @m.Content
+                    <span class="sb-bubble-time">@m.Timestamp.ToString("dd MMM HH:mm")</span>
+                </div>
+            }
+        </div>
+    }
+
+    <form asp-action="Send" method="post" class="mt-3">
+        <input type="hidden" name="receiverId" value="@Model.OtherUserId" />
+        <div class="mb-2">
+            <label for="content" class="form-label">Your message</label>
+            <textarea id="content" name="content" class="form-control" rows="3" maxlength="2000" required></textarea>
+        </div>
+        <button type="submit" class="btn btn-sb">Send</button>
+    </form>
+</div>

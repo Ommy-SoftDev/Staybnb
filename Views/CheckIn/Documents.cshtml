@@ -1,0 +1,54 @@
+@model Staybnb.ViewModels.CheckInFlowVM
+@{
+    ViewData["Title"] = "Check-in: documents";
+    var b = Model.Booking;
+    var inProgress = Model.CheckIn.Status == Staybnb.Enums.CheckInStatus.InProgress;
+}
+
+<div class="sb-form-wide">
+    <h1>Check in to @b.Property.Title</h1>
+    <p class="sb-muted">Upload the documents the host asked for. JPG, PNG or PDF, up to 5MB each.</p>
+
+    <partial name="_CheckInSteps" model="2" />
+
+    @foreach (var type in Model.Config.Documents)
+    {
+        var doc = Model.CheckIn.Documents.FirstOrDefault(d => d.DocumentType == type);
+        var badge = doc == null ? "sb-badge-neutral"
+                  : doc.Status == Staybnb.Enums.DocumentStatus.Verified ? "sb-badge-approved"
+                  : doc.Status == Staybnb.Enums.DocumentStatus.Rejected ? "sb-badge-rejected"
+                  : "sb-badge-pending";
+        var label = doc == null ? "Not uploaded"
+                  : doc.Status == Staybnb.Enums.DocumentStatus.Pending ? "Waiting for review"
+                  : doc.Status.ToString();
+
+        <div class="sb-doc">
+            <div class="sb-doc-head">
+                <strong>@type</strong>
+                <span class="sb-badge @badge">@label</span>
+            </div>
+
+            @if (doc != null)
+            {
+                <div class="mt-2">
+                    <a asp-controller="Documents" asp-action="Download" asp-route-id="@doc.Id" target="_blank">View uploaded file</a>
+                </div>
+            }
+
+            @if (inProgress && (doc == null || doc.Status != Staybnb.Enums.DocumentStatus.Verified))
+            {
+                <form asp-action="Upload" method="post" enctype="multipart/form-data" class="d-flex gap-2 mt-3 flex-wrap">
+                    <input type="hidden" name="bookingId" value="@b.Id" />
+                    <input type="hidden" name="documentType" value="@type" />
+                    <input type="file" name="file" accept=".jpg,.jpeg,.png,.pdf" class="form-control" style="max-width:320px" required />
+                    <button type="submit" class="btn btn-sb-outline btn-sm">@(doc == null ? "Upload" : "Replace")</button>
+                </form>
+            }
+        </div>
+    }
+
+    <div class="mt-3">
+        <a asp-action="Rules" asp-route-bookingId="@b.Id" class="btn btn-sb-outline">Back</a>
+        <a asp-action="Summary" asp-route-bookingId="@b.Id" class="btn btn-sb">Continue</a>
+    </div>
+</div>

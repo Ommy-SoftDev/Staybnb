@@ -1,0 +1,36 @@
+@model List<Staybnb.ViewModels.ConversationRowVM>
+@{
+    ViewData["Title"] = "Messages";
+}
+
+<h1>Messages</h1>
+
+@if (!Model.Any())
+{
+    <div class="sb-card sb-empty mt-3">
+        <h2>No messages yet</h2>
+        <p class="sb-muted">Message a host from a property page, or a guest from your booking requests.</p>
+    </div>
+}
+else
+{
+    <div class="sb-card mt-3">
+        @foreach (var c in Model)
+        {
+            <a class="sb-inbox-row @(c.UnreadCount > 0 ? "sb-inbox-unread" : "")"
+               asp-action="Conversation" asp-route-userId="@c.OtherUserId">
+                <div>
+                    <div class="sb-inbox-name">@c.OtherName</div>
+                    <div class="sb-inbox-last">@c.LastMessage</div>
+                </div>
+                <div class="text-end">
+                    <div class="sb-notif-time">@c.LastTime.ToString("dd MMM HH:mm")</div>
+                    @if (c.UnreadCount > 0)
+                    {
+                        <span class="sb-count">@c.UnreadCount</span>
+                    }
+                </div>
+            </a>
+        }
+    </div>
+}

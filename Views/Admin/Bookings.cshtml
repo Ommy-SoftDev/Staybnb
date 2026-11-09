@@ -1,0 +1,48 @@
+@model List<Staybnb.Models.Booking>
+@using Staybnb.Services
+@{
+    ViewData["Title"] = "Bookings";
+}
+
+<p class="sb-filter">
+    <a asp-action="Bookings">All</a>
+    <a asp-action="Bookings" asp-route-status="Pending">Pending</a>
+    <a asp-action="Bookings" asp-route-status="Approved">Approved</a>
+    <a asp-action="Bookings" asp-route-status="CheckedIn">Checked in</a>
+    <a asp-action="Bookings" asp-route-status="Rejected">Rejected</a>
+    <a asp-action="Bookings" asp-route-status="Cancelled">Cancelled</a>
+</p>
+
+@if (!Model.Any())
+{
+    <div class="sb-card sb-empty">
+        <h2>No bookings here</h2>
+        <p class="sb-muted">Bookings made by guests show up in this list.</p>
+    </div>
+}
+else
+{
+    <div class="sb-card">
+        <table class="sb-table">
+            <thead>
+                <tr><th>Guest</th><th>Property</th><th>Dates</th><th>Total</th><th>Status</th><th>Check-in</th></tr>
+            </thead>
+            <tbody>
+                @foreach (var b in Model)
+                {
+                    var badge = b.Status == Staybnb.Enums.BookingStatus.Approved || b.Status == Staybnb.Enums.BookingStatus.CheckedIn ? "sb-badge-approved"
+                              : b.Status == Staybnb.Enums.BookingStatus.Rejected || b.Status == Staybnb.Enums.BookingStatus.Cancelled ? "sb-badge-rejected"
+                              : "sb-badge-pending";
+                    <tr>
+                        <td>@NameHelper.Display(b.Guest)<br /><span class="sb-muted">@b.Guest.Email</span></td>
+                        <td>@b.Property.Title<br /><span class="sb-muted">@b.Property.City</span></td>
+                        <td>@b.CheckInDate.ToString("dd MMM") to @b.CheckOutDate.ToString("dd MMM yyyy")</td>
+                        <td>R @b.TotalPrice.ToString("N2")</td>
+                        <td><span class="sb-badge @badge">@b.Status</span></td>
+                        <td>@(b.GuestCheckIn == null ? "Not started" : b.GuestCheckIn.Status.ToString())</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

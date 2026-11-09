@@ -1,0 +1,224 @@
+@using System.Globalization
+@using Staybnb.Services
+@model Staybnb.Models.HostProperty
+@{
+    ViewData["Title"] = Model.Title;
+    var images = Model.Images.ToList();
+    var isGuest = User.IsInRole("Guest");
+    var signedIn = User.Identity?.IsAuthenticated == true;
+    var isSaved = ViewBag.IsSaved is bool b && b;
+    var reviewCount = Model.Reviews.Count;
+    var average = reviewCount > 0 ? Model.Reviews.Average(r => r.Rating) : 0;
+    var inv = CultureInfo.InvariantCulture;
+    var hostName = NameHelper.Display(Model.Host);
+    var hostInitial = string.IsNullOrEmpty(hostName) ? "?" : hostName.Substring(0, 1).ToUpper();
+    var returnUrl = Context.Request.Path.Value + Context.Request.QueryString.Value;
+    var mosaicClass = images.Count >= 3 ? "" : (images.Count == 2 ? "sb-mosaic-two" : "sb-mosaic-one");
+}
+
+<div class="sb-prop-header d-flex justify-content-between flex-wrap gap-3">
+    <div>
+        <h1>@Model.Title</h1>
+        <div class="sb-muted">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+            @Model.City, South Africa
+        </div>
+        <div class="sb-muted mt-1">
+            @PropertyText.Summary(Model) &middot;
+            <span class="sb-star">&#9733;</span> @average.ToString("0.0") (@reviewCount @(reviewCount == 1 ? "review" : "reviews"))
+        </div>
+    </div>
+
+    <div class="sb-host-box">
+        <span class="sb-avatar sb-avatar-lg">@hostInitial</span>
+        <div class="sb-host-name">@hostName</div>
+        <span class="sb-verified">Verified Host</span>
+    </div>
+</div>
+
+@if (images.Count > 0)
+{
+    <div class="sb-mosaic2 @mosaicClass">
+        @foreach (var img in images.Take(3))
+        {
+            <img src="@img.ImageUrl" alt="Photo of @Model.Title" />
+        }
+    </div>
+}
+
+<div class="sb-property-layout">
+    <div>
+        <h2>About this place</h2>
+        <p style="white-space: pre-line">@Model.Description</p>
+
+        @if (isGuest)
+        {
+            <p><a asp-controller="Messages" asp-action="Conversation" asp-route-userId="@Model.HostId" class="btn btn-sb-outline btn-sm">Message the host</a></p>
+        }
+
+        @if (Model.Amenities.Any())
+        {
+            <h2 class="sb-panel-title">Amenities</h2>
+            <div class="sb-amenity-list">
+                @foreach (var a in Model.Amenities.OrderBy(x => x.Name))
+                {
+                    <div class="sb-amenity-item">
+                        <partial name="_AmenityIcon" model="a.IconClass" />
+                        <span>@a.Name</span>
+                    </div>
+                }
+            </div>
+        }
+
+        <h2 class="sb-panel-title">Reviews</h2>
+        @if (reviewCount == 0)
+        {
+            <p class="sb-muted">No reviews yet.</p>
+        }
+        else
+        {
+            foreach (var r in Model.Reviews.OrderByDescending(x => x.CreatedAt))
+            {
+                <div class="sb-review">
+                    <strong>@r.Reviewer.FirstName</strong>
+                    <span class="sb-star">&#9733;</span> @r.Rating
+                    <div>@r.Comment</div>
+                </div>
+            }
+        }
+    </div>
+
+    <div>
+        <div class="sb-book-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div class="sb-book-price">R @Model.PricePerNight.ToString("N0") <span class="sb-muted" style="font-size:1rem;font-weight:400">/ night</span></div>
+
+                @if (isGuest)
+                {
+                    <form asp-controller="Wishlist" asp-action="Toggle" method="post">
+                        <input type="hidden" name="propertyId" value="@Model.Id" />
+                        <input type="hidden" name="returnUrl" value="@returnUrl" />
+                        <button type="submit" class="sb-heart sb-heart-inline @(isSaved ? "saved" : "")" aria-label="@(isSaved ? "Remove from wishlist" : "Save to wishlist")">
+                            <svg width="18" height="18" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                        </button>
+                    </form>
+                }
+            </div>
+
+            @if (isGuest)
+            {
+                <form asp-controller="Bookings" asp-action="Create" method="post" id="bookingForm"
+                      data-price="@Model.PricePerNight.ToString("0.##", inv)"
+                      data-cleaning="@Model.CleaningFee.ToString("0.##", inv)"
+                      data-rate="0.12" data-max="@Model.MaxGuests" class="mt-3">
+                    <input type="hidden" name="propertyId" value="@Model.Id" />
+
+                    <div class="sb-date-box">
+                        <div class="sb-date-cell">
+                            <label for="checkIn">CHECK-IN</label>
+                            <input type="date" id="checkIn" name="checkIn" min="@DateTime.Today.ToString("yyyy-MM-dd")" required />
+                        </div>
+                        <div class="sb-date-cell">
+                            <label for="checkOut">CHECKOUT</label>
+                            <input type="date" id="checkOut" name="checkOut" min="@DateTime.Today.AddDays(1).ToString("yyyy-MM-dd")" required />
+                        </div>
+                    </div>
+
+                    <div class="sb-guest-row">
+                        <div>
+                            <div class="sb-guest-label">GUESTS</div>
+                            <div class="sb-muted" style="font-size:.8rem">Maximum @Model.MaxGuests</div>
+                        </div>
+                        <div class="sb-stepper">
+                            <button type="button" id="gMinus" aria-label="Fewer guests">&minus;</button>
+                            <span id="gCount">1</span>
+                            <button type="button" id="gPlus" aria-label="More guests">+</button>
+                        </div>
+                        <input type="hidden" id="guests" name="guests" value="1" />
+                    </div>
+
+                    <div id="priceBox" class="sb-price-lines" style="display:none">
+                        <div class="sb-price-line"><span id="lineNights"></span><span id="valNights"></span></div>
+                        <div class="sb-price-line"><span>Cleaning fee</span><span id="valCleaning"></span></div>
+                        <div class="sb-price-line"><span>Service fee</span><span id="valService"></span></div>
+                        <div class="sb-price-line sb-price-total"><span>Total</span><span id="valTotal"></span></div>
+                    </div>
+
+                    <button type="submit" class="btn btn-sb w-100 mt-3">Request to book</button>
+                    <div class="sb-muted mt-2" style="font-size:.85rem">You won't be charged until the host approves.</div>
+                </form>
+            }
+            else if (!signedIn)
+            {
+                <p class="sb-muted mt-3">Log in as a guest to book this stay.</p>
+                <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="@returnUrl"
+                   class="btn btn-sb w-100">Log in to book</a>
+            }
+            else
+            {
+                <p class="sb-muted mt-3">Only guest accounts can book stays.</p>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (function () {
+            var form = document.getElementById('bookingForm');
+            if (!form) return;
+
+            var price = parseFloat(form.dataset.price);
+            var cleaning = parseFloat(form.dataset.cleaning);
+            var rate = parseFloat(form.dataset.rate);
+            var maxGuests = parseInt(form.dataset.max, 10);
+            var checkIn = document.getElementById('checkIn');
+            var checkOut = document.getElementById('checkOut');
+            var guests = document.getElementById('guests');
+            var gCount = document.getElementById('gCount');
+
+            function money(n) {
+                return 'R ' + n.toLocaleString('en-ZA', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            }
+
+            function update() {
+                var box = document.getElementById('priceBox');
+                if (!checkIn.value || !checkOut.value) { box.style.display = 'none'; return; }
+
+                var nights = Math.round((new Date(checkOut.value) - new Date(checkIn.value)) / 86400000);
+                if (nights <= 0) { box.style.display = 'none'; return; }
+
+                var subtotal = price * nights;
+                var service = Math.round(subtotal * rate * 100) / 100;
+                var total = subtotal + cleaning + service;
+
+                document.getElementById('lineNights').textContent = 'R ' + price.toLocaleString('en-ZA') + ' x ' + nights + (nights === 1 ? ' night' : ' nights');
+                document.getElementById('valNights').textContent = money(subtotal);
+                document.getElementById('valCleaning').textContent = money(cleaning);
+                document.getElementById('valService').textContent = money(service);
+                document.getElementById('valTotal').textContent = money(total);
+                box.style.display = 'block';
+            }
+
+            function setGuests(n) {
+                if (n < 1) n = 1;
+                if (n > maxGuests) n = maxGuests;
+                guests.value = n;
+                gCount.textContent = n;
+            }
+
+            document.getElementById('gMinus').addEventListener('click', function () { setGuests(parseInt(guests.value, 10) - 1); });
+            document.getElementById('gPlus').addEventListener('click', function () { setGuests(parseInt(guests.value, 10) + 1); });
+
+            checkIn.addEventListener('change', function () {
+                if (checkIn.value) {
+                    var next = new Date(checkIn.value);
+                    next.setDate(next.getDate() + 1);
+                    checkOut.min = next.toISOString().slice(0, 10);
+                }
+                update();
+            });
+            checkOut.addEventListener('change', update);
+        })();
+    </script>
+}

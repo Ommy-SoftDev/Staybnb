@@ -1,0 +1,11 @@
+@model int
+
+<li class="nav-item">
+    <a class="nav-link" asp-controller="Messages" asp-action="Inbox">
+        Messages
+        @if (Model > 0)
+        {
+            <span class="sb-count">@Model</span>
+        }
+    </a>
+</li>

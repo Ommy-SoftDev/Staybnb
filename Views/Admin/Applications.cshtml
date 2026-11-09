@@ -1,0 +1,45 @@
+@model List<Staybnb.Models.HostApplication>
+@{
+    ViewData["Title"] = "Host Requests";
+    var current = ViewBag.Status as string;
+}
+
+<h1>Host requests</h1>
+
+<p class="sb-filter">
+    <a asp-action="Applications">All</a>
+    <a asp-action="Applications" asp-route-status="Pending">Pending</a>
+    <a asp-action="Applications" asp-route-status="Approved">Approved</a>
+    <a asp-action="Applications" asp-route-status="Rejected">Rejected</a>
+</p>
+
+@if (!Model.Any())
+{
+    <div class="sb-card sb-empty">
+        <h2>Nothing to review</h2>
+        <p class="sb-muted">There are no applications in this list.</p>
+    </div>
+}
+else
+{
+    <div class="sb-card">
+        <table class="sb-table">
+            <thead>
+                <tr><th>Applicant</th><th>Property</th><th>City</th><th>Applied</th><th>Status</th><th></th></tr>
+            </thead>
+            <tbody>
+                @foreach (var a in Model)
+                {
+                    <tr>
+                        <td>@a.ApplicationUser.FirstName @a.ApplicationUser.LastName<br /><span class="sb-muted">@a.ApplicationUser.Email</span></td>
+                        <td>@a.Property.Title</td>
+                        <td>@a.Property.City</td>
+                        <td>@a.AppliedAt.ToString("yyyy-MM-dd")</td>
+                        <td><partial name="_StatusBadge" model="a.Status" /></td>
+                        <td><a asp-action="ApplicationDetails" asp-route-id="@a.Id">Review</a></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

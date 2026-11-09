@@ -1,0 +1,12 @@
+Staybnb demo photos
+Source: Unsplash (https://unsplash.com), free to use under the Unsplash License.
+
+demo-1.jpg    Vojtech Bruzek      Hotel bedroom
+demo-1-b.jpg  Joao Emanuel        Modern bedroom
+demo-1-c.jpg  Frames For Your Heart  Lounge
+demo-2.jpg    VisualsOfDana       Garden-view bedroom
+demo-2-b.jpg  Marcel Strauss      Wood-panelled bedroom
+demo-3.jpg    Roberto Nickson     Glass house living area
+demo-3-b.jpg  Maverick Frame      Open-plan lounge
+
+Photos were cropped to 4:3 and compressed for the website.

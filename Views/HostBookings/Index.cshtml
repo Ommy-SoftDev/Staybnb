@@ -1,0 +1,67 @@
+@model List<Staybnb.Models.Booking>
+@{
+    ViewData["Title"] = "Booking Requests";
+}
+
+<h1>Booking requests</h1>
+
+<p class="sb-filter">
+    <a asp-action="Index">All</a>
+    <a asp-action="Index" asp-route-status="Pending">Pending</a>
+    <a asp-action="Index" asp-route-status="Approved">Approved</a>
+    <a asp-action="Index" asp-route-status="CheckedIn">Checked in</a>
+    <a asp-action="Index" asp-route-status="Rejected">Rejected</a>
+    <a asp-action="Index" asp-route-status="Cancelled">Cancelled</a>
+</p>
+
+@if (!Model.Any())
+{
+    <div class="sb-card sb-empty">
+        <h2>No bookings here</h2>
+        <p class="sb-muted">Requests from guests will show up in this list.</p>
+    </div>
+}
+else
+{
+    <div class="sb-card">
+        <table class="sb-table">
+            <thead>
+                <tr><th>Guest</th><th>Property</th><th>Dates</th><th>Total</th><th>Status</th><th></th></tr>
+            </thead>
+            <tbody>
+                @foreach (var b in Model)
+                {
+                    var badge = b.Status == Staybnb.Enums.BookingStatus.Approved || b.Status == Staybnb.Enums.BookingStatus.CheckedIn ? "sb-badge-approved"
+                              : b.Status == Staybnb.Enums.BookingStatus.Rejected || b.Status == Staybnb.Enums.BookingStatus.Cancelled ? "sb-badge-rejected"
+                              : "sb-badge-pending";
+                    var guestName = (b.Guest.FirstName + " " + b.Guest.LastName).Trim();
+                    <tr>
+                        <td>@(string.IsNullOrEmpty(guestName) ? b.Guest.Email : guestName)<br /><span class="sb-muted">@b.NumberOfGuests @(b.NumberOfGuests == 1 ? "guest" : "guests")</span><br /><a asp-controller="Messages" asp-action="Conversation" asp-route-userId="@b.GuestId">Message guest</a></td>
+                        <td>@b.Property.Title</td>
+                        <td>@b.CheckInDate.ToString("dd MMM") to @b.CheckOutDate.ToString("dd MMM yyyy")</td>
+                        <td>R @b.TotalPrice.ToString("N2")</td>
+                        <td><span class="sb-badge @badge">@b.Status</span></td>
+                        <td>
+                            @if (b.Status == Staybnb.Enums.BookingStatus.Pending)
+                            {
+                                <div class="d-flex gap-1">
+                                    <form asp-action="Approve" asp-route-id="@b.Id" method="post">
+                                        <button type="submit" class="btn btn-sb btn-sm">Approve</button>
+                                    </form>
+                                    <form asp-action="Reject" asp-route-id="@b.Id" method="post"
+                                          onsubmit="return confirm('Reject this booking?');">
+                                        <button type="submit" class="btn btn-sb-outline btn-sm">Reject</button>
+                                    </form>
+                                </div>
+                            }
+                            else if (b.Status == Staybnb.Enums.BookingStatus.Approved || b.Status == Staybnb.Enums.BookingStatus.CheckedIn)
+                            {
+                                <a asp-action="Review" asp-route-id="@b.Id">Check-in</a>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

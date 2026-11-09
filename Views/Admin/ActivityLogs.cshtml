@@ -1,0 +1,26 @@
+@model List<Staybnb.Models.ActivityLog>
+@{
+    ViewData["Title"] = "Activity Logs";
+}
+
+<h1>Activity logs</h1>
+<p class="sb-muted">The 200 most recent events: logins, registrations, role changes and application decisions.</p>
+
+<div class="sb-card">
+    <table class="sb-table">
+        <thead>
+            <tr><th>When</th><th>User</th><th>Type</th><th>Action</th></tr>
+        </thead>
+        <tbody>
+            @foreach (var l in Model)
+            {
+                <tr>
+                    <td>@l.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                    <td>@(l.User != null ? l.User.Email : "System")</td>
+                    <td>@l.ActivityType</td>
+                    <td>@l.Action</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

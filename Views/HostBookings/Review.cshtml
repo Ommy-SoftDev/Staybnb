@@ -1,0 +1,87 @@
+@model Staybnb.ViewModels.HostReviewVM
+@{
+    ViewData["Title"] = "Check-in review";
+    var b = Model.Booking;
+    var checkIn = b.GuestCheckIn;
+    var guestName = (b.Guest.FirstName + " " + b.Guest.LastName).Trim();
+    var submitted = checkIn != null && checkIn.Status == Staybnb.Enums.CheckInStatus.Submitted;
+}
+
+<p><a asp-action="Index">Back to booking requests</a></p>
+
+<h1>Check-in review</h1>
+
+<div class="sb-card mb-4">
+    <dl class="sb-detail-list">
+        <dt>Guest</dt>
+        <dd>@(string.IsNullOrEmpty(guestName) ? b.Guest.Email : guestName) (@b.Guest.Email)</dd>
+        <dt>Property</dt>
+        <dd>@b.Property.Title</dd>
+        <dt>Stay</dt>
+        <dd>@b.CheckInDate.ToString("dd MMM yyyy") to @b.CheckOutDate.ToString("dd MMM yyyy")</dd>
+        <dt>Booking status</dt>
+        <dd>@b.Status</dd>
+        <dt>Check-in status</dt>
+        <dd>@(checkIn == null ? "Not started" : checkIn.Status.ToString())</dd>
+    </dl>
+</div>
+
+<h2 class="sb-panel-title">Documents</h2>
+
+@if (checkIn == null || checkIn.Status == Staybnb.Enums.CheckInStatus.NotStarted)
+{
+    <p class="sb-muted">The guest has not started their check-in yet.</p>
+}
+else
+{
+    foreach (var type in Model.Config.Documents)
+    {
+        var doc = checkIn.Documents.FirstOrDefault(d => d.DocumentType == type);
+        <div class="sb-doc">
+            <div class="sb-doc-head">
+                <strong>@type</strong>
+                @if (doc == null)
+                {
+                    <span class="sb-badge sb-badge-neutral">Not uploaded</span>
+                }
+                else if (doc.Status == Staybnb.Enums.DocumentStatus.Verified)
+                {
+                    <span class="sb-badge sb-badge-approved">Verified</span>
+                }
+                else if (doc.Status == Staybnb.Enums.DocumentStatus.Rejected)
+                {
+                    <span class="sb-badge sb-badge-rejected">Rejected</span>
+                }
+                else
+                {
+                    <span class="sb-badge sb-badge-pending">Waiting for review</span>
+                }
+            </div>
+
+            @if (doc != null)
+            {
+                <div class="mt-2">
+                    <a asp-controller="Documents" asp-action="Download" asp-route-id="@doc.Id" target="_blank">Open the uploaded file</a>
+                </div>
+
+                if (submitted && doc.Status == Staybnb.Enums.DocumentStatus.Pending)
+                {
+                    <div class="d-flex gap-2 mt-3">
+                        <form asp-action="VerifyDocument" asp-route-id="@doc.Id" method="post">
+                            <button type="submit" class="btn btn-sb btn-sm">Verify</button>
+                        </form>
+                        <form asp-action="RejectDocument" asp-route-id="@doc.Id" method="post"
+                              onsubmit="return confirm('Reject this document? The guest will be asked to upload it again.');">
+                            <button type="submit" class="btn btn-sb-outline btn-sm">Reject</button>
+                        </form>
+                    </div>
+                }
+            }
+        </div>
+    }
+
+    if (!submitted && checkIn.Status == Staybnb.Enums.CheckInStatus.InProgress)
+    {
+        <p class="sb-muted">The guest is still uploading. You can review once they submit.</p>
+    }
+}

@@ -1,0 +1,74 @@
+@model List<Staybnb.Models.Booking>
+@{
+    ViewData["Title"] = "My Bookings";
+}
+
+<h1>My bookings</h1>
+
+@if (!Model.Any())
+{
+    <div class="sb-card sb-empty mt-3">
+        <h2>No bookings yet</h2>
+        <p class="sb-muted">When you request a stay it will show up here.</p>
+        <a asp-controller="Home" asp-action="Index" class="btn btn-sb">Find a stay</a>
+    </div>
+}
+else
+{
+    <div class="sb-card mt-3">
+        @foreach (var b in Model)
+        {
+            var cover = b.Property.Images.FirstOrDefault()?.ImageUrl;
+            var nights = (b.CheckOutDate - b.CheckInDate).Days;
+            var badge = b.Status == Staybnb.Enums.BookingStatus.Approved || b.Status == Staybnb.Enums.BookingStatus.CheckedIn ? "sb-badge-approved"
+                      : b.Status == Staybnb.Enums.BookingStatus.Rejected || b.Status == Staybnb.Enums.BookingStatus.Cancelled ? "sb-badge-rejected"
+                      : "sb-badge-pending";
+
+            <div class="sb-prop">
+                @if (cover != null)
+                {
+                    <img src="@cover" class="sb-thumb" alt="Photo of @b.Property.Title" />
+                }
+                else
+                {
+                    <div class="sb-thumb"></div>
+                }
+
+                <div class="sb-prop-body">
+                    <p class="sb-prop-title">
+                        <a asp-controller="Properties" asp-action="Details" asp-route-id="@b.PropertyId">@b.Property.Title</a>
+                    </p>
+                    <div class="sb-muted">@b.Property.City</div>
+                    <div>@b.CheckInDate.ToString("dd MMM yyyy") to @b.CheckOutDate.ToString("dd MMM yyyy") (@nights @(nights == 1 ? "night" : "nights"), @b.NumberOfGuests @(b.NumberOfGuests == 1 ? "guest" : "guests"))</div>
+                    <div class="mt-1"><strong>Total R @b.TotalPrice.ToString("N2")</strong></div>
+                    <div class="mt-2"><span class="sb-badge @badge">@b.Status</span></div>
+                </div>
+
+                <div class="sb-prop-actions">
+                    <a asp-controller="Messages" asp-action="Conversation" asp-route-userId="@b.Property.HostId" class="btn btn-sb-outline btn-sm">Message host</a>
+                    @if (b.Status == Staybnb.Enums.BookingStatus.Approved)
+                    {
+                        var ci = b.GuestCheckIn?.Status;
+                        if (ci == Staybnb.Enums.CheckInStatus.Submitted)
+                        {
+                            <span class="sb-muted">Check-in submitted. Waiting for the host.</span>
+                        }
+                        else
+                        {
+                            <a asp-controller="CheckIn" asp-action="Rules" asp-route-bookingId="@b.Id" class="btn btn-sb btn-sm">
+                                @(ci == null || ci == Staybnb.Enums.CheckInStatus.NotStarted ? "Start check-in" : "Continue check-in")
+                            </a>
+                        }
+                    }
+                    @if (b.Status == Staybnb.Enums.BookingStatus.Pending || b.Status == Staybnb.Enums.BookingStatus.Approved)
+                    {
+                        <form asp-action="Cancel" asp-route-id="@b.Id" method="post"
+                              onsubmit="return confirm('Cancel this booking?');">
+                            <button type="submit" class="btn btn-sb-outline btn-sm">Cancel booking</button>
+                        </form>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+}

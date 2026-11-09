@@ -1,0 +1,65 @@
+@model Staybnb.ViewModels.CheckInFlowVM
+@{
+    ViewData["Title"] = "Check-in: submit";
+    var b = Model.Booking;
+    var missing = Model.Config.Documents
+        .Where(type => !Model.CheckIn.Documents.Any(d => d.DocumentType == type && d.Status != Staybnb.Enums.DocumentStatus.Rejected))
+        .ToList();
+    var canSubmit = !missing.Any() && Model.CheckIn.Status == Staybnb.Enums.CheckInStatus.InProgress;
+}
+
+<div class="sb-form-wide">
+    <h1>Check in to @b.Property.Title</h1>
+
+    <partial name="_CheckInSteps" model="3" />
+
+    <div class="sb-card">
+        <h2>Review and submit</h2>
+        <p class="sb-muted">@b.CheckInDate.ToString("dd MMM yyyy") to @b.CheckOutDate.ToString("dd MMM yyyy"), @b.NumberOfGuests @(b.NumberOfGuests == 1 ? "guest" : "guests")</p>
+
+        <table class="sb-table">
+            <thead>
+                <tr><th>Document</th><th>Status</th></tr>
+            </thead>
+            <tbody>
+                @foreach (var type in Model.Config.Documents)
+                {
+                    var doc = Model.CheckIn.Documents.FirstOrDefault(d => d.DocumentType == type);
+                    <tr>
+                        <td>@type</td>
+                        <td>
+                            @if (doc == null)
+                            {
+                                <span class="sb-badge sb-badge-neutral">Not uploaded</span>
+                            }
+                            else if (doc.Status == Staybnb.Enums.DocumentStatus.Rejected)
+                            {
+                                <span class="sb-badge sb-badge-rejected">Rejected, upload again</span>
+                            }
+                            else
+                            {
+                                <span class="sb-badge sb-badge-approved">Uploaded</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        @if (missing.Any())
+        {
+            <div class="alert alert-warning mt-3">Still needed: @string.Join(", ", missing)</div>
+        }
+
+        <div class="mt-3 d-flex gap-2">
+            <a asp-action="Documents" asp-route-bookingId="@b.Id" class="btn btn-sb-outline">Back</a>
+            @if (canSubmit)
+            {
+                <form asp-action="Submit" method="post">
+                    <input type="hidden" name="bookingId" value="@b.Id" />
+                    <button type="submit" class="btn btn-sb">Submit check-in</button>
+                </form>
+            }
+        </div>
+    </div>
+</div>

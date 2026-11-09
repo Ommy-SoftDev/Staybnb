@@ -1,0 +1,7 @@
+@model Staybnb.Enums.ApplicationStatus
+@{
+    var css = Model == Staybnb.Enums.ApplicationStatus.Approved ? "sb-badge-approved"
+            : Model == Staybnb.Enums.ApplicationStatus.Rejected ? "sb-badge-rejected"
+            : "sb-badge-pending";
+}
+<span class="sb-badge @css">@Model</span>

@@ -1,0 +1,36 @@
+@using Microsoft.AspNetCore.Identity
+@using Staybnb.Models
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+
+<ul class="navbar-nav">
+@if (SignInManager.IsSignedIn(User))
+{
+    var currentUser = await UserManager.GetUserAsync(User);
+    var displayName = string.IsNullOrWhiteSpace(currentUser?.FirstName) ? User.Identity!.Name : currentUser!.FirstName;
+    var initial = string.IsNullOrEmpty(displayName) ? "?" : displayName.Substring(0, 1).ToUpper();
+
+    <li class="nav-item dropdown">
+        <button class="sb-user-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <span class="sb-avatar">@initial</span>
+            <span>@displayName</span>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end">
+            <li>
+                <form asp-controller="Account" asp-action="Logout" method="post">
+                    <button type="submit" class="dropdown-item">Log out</button>
+                </form>
+            </li>
+        </ul>
+    </li>
+}
+else
+{
+    <li class="nav-item">
+        <a class="nav-link" asp-controller="Account" asp-action="Login">Log in</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" asp-controller="Account" asp-action="Register">Sign up</a>
+    </li>
+}
+</ul>

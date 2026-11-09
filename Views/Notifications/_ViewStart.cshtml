@@ -1,0 +1,15 @@
+@{
+    // Messages and notifications are shared pages, so the layout follows the user's role
+    if (User.IsInRole("Admin") || User.IsInRole("SuperAdmin"))
+    {
+        Layout = "_AdminLayout";
+    }
+    else if (User.IsInRole("Host"))
+    {
+        Layout = "_HostLayout";
+    }
+    else
+    {
+        Layout = "_Layout";
+    }
+}

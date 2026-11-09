@@ -1,0 +1,89 @@
+@using Microsoft.AspNetCore.Identity
+@using Staybnb.Models
+@using Staybnb.Services
+@inject UserManager<ApplicationUser> UserManager
+@{
+    var controller = ViewContext.RouteData.Values["controller"]?.ToString();
+    var action = ViewContext.RouteData.Values["action"]?.ToString();
+    var currentUser = await UserManager.GetUserAsync(User);
+    var displayName = NameHelper.Display(currentUser);
+    var initial = string.IsNullOrEmpty(displayName) ? "?" : displayName.Substring(0, 1).ToUpper();
+    var propertiesPages = !(new[] { "Dashboard", "Earnings", "Reviews" }).Contains(action);
+
+    string Active(bool on) => on ? "active" : "";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Staybnb Host</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/staybnb.css" asp-append-version="true" />
+</head>
+<body class="sb-app">
+    <div class="sb-shell">
+        <aside class="sb-sidebar">
+            <a class="sb-side-brand" asp-controller="Host" asp-action="Dashboard"><partial name="_LogoMark" />staybnb <span>host</span></a>
+            <nav class="sb-side-nav">
+                <a class="sb-side-link @Active(controller == "Host" && action == "Dashboard")" asp-controller="Host" asp-action="Dashboard">Dashboard</a>
+                <a class="sb-side-link @Active(controller == "Host" && propertiesPages)" asp-controller="Host" asp-action="MyProperties">My Properties</a>
+                <a class="sb-side-link @Active(controller == "HostBookings")" asp-controller="HostBookings" asp-action="Index">Booking Requests</a>
+                <a class="sb-side-link @Active(controller == "Host" && action == "Earnings")" asp-controller="Host" asp-action="Earnings">Earnings</a>
+                <a class="sb-side-link @Active(controller == "Host" && action == "Reviews")" asp-controller="Host" asp-action="Reviews">Reviews</a>
+                <a class="sb-side-link @Active(controller == "Messages")" asp-controller="Messages" asp-action="Inbox">Messages @await Component.InvokeAsync("MessageBadge", new { style = "Badge" })</a>
+                <a class="sb-side-link @Active(controller == "Notifications")" asp-controller="Notifications" asp-action="Index">Notifications @await Component.InvokeAsync("NotificationBell", new { style = "Badge" })</a>
+                <form asp-controller="Account" asp-action="Logout" method="post">
+                    <button type="submit" class="sb-side-link sb-side-logout">Logout</button>
+                </form>
+            </nav>
+        </aside>
+
+        <div class="sb-shell-main">
+            <header class="sb-topbar">
+                <button type="button" class="sb-toggle" id="sbToggle" aria-label="Toggle menu">&#8249;</button>
+                <h1 class="sb-topbar-title">@ViewData["Title"]</h1>
+                <div class="sb-topbar-right">
+                    @await Component.InvokeAsync("MessageBadge", new { style = "Icon" })
+                    @await Component.InvokeAsync("NotificationBell", new { style = "Icon" })
+                    <div class="dropdown">
+                        <button class="sb-user-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <span class="sb-avatar">@initial</span>
+                            <span class="sb-user-text">@displayName<small>Host</small></span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" asp-controller="Home" asp-action="Index">View site</a></li>
+                            <li>
+                                <form asp-controller="Account" asp-action="Logout" method="post">
+                                    <button type="submit" class="dropdown-item">Log out</button>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </header>
+
+            <main class="sb-content">
+                @if (TempData["Success"] != null)
+                {
+                    <div class="alert alert-success">@TempData["Success"]</div>
+                }
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert alert-danger">@TempData["Error"]</div>
+                }
+                @RenderBody()
+            </main>
+        </div>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.getElementById('sbToggle').addEventListener('click', function () {
+            document.body.classList.toggle('sb-collapsed');
+        });
+    </script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

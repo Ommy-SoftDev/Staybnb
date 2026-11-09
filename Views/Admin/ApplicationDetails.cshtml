@@ -1,0 +1,56 @@
+@model Staybnb.Models.HostApplication
+@{
+    ViewData["Title"] = "Review application";
+    var p = Model.Property;
+}
+
+<p><a asp-action="Applications">Back to host requests</a></p>
+
+<h1>@p.Title</h1>
+<p><partial name="_StatusBadge" model="Model.Status" /></p>
+
+<div class="sb-card mb-4">
+    <dl class="sb-detail-list">
+        <dt>Applicant</dt>
+        <dd>@Model.ApplicationUser.FirstName @Model.ApplicationUser.LastName (@Model.ApplicationUser.Email)</dd>
+        <dt>Applied on</dt>
+        <dd>@Model.AppliedAt.ToString("yyyy-MM-dd HH:mm")</dd>
+        <dt>Property type</dt>
+        <dd>@p.PropertyType</dd>
+        <dt>Address</dt>
+        <dd>@p.Address, @p.City</dd>
+        <dt>Max guests</dt>
+        <dd>@p.MaxGuests</dd>
+        <dt>Price per night</dt>
+        <dd>R @p.PricePerNight.ToString("N2")</dd>
+        <dt>Cleaning fee</dt>
+        <dd>R @p.CleaningFee.ToString("N2")</dd>
+        <dt>Description</dt>
+        <dd>@p.Description</dd>
+    </dl>
+</div>
+
+<h2 class="sb-panel-title">Photos</h2>
+<div class="sb-photos mb-4">
+    @foreach (var img in p.Images)
+    {
+        <img src="@img.ImageUrl" class="sb-photo" alt="Photo of @p.Title" />
+    }
+</div>
+
+@if (Model.Status == Staybnb.Enums.ApplicationStatus.Pending)
+{
+    <div class="d-flex gap-2">
+        <form asp-action="Approve" asp-route-id="@Model.Id" method="post">
+            <button type="submit" class="btn btn-sb">Approve and make host</button>
+        </form>
+        <form asp-action="Reject" asp-route-id="@Model.Id" method="post"
+              onsubmit="return confirm('Reject this application?');">
+            <button type="submit" class="btn btn-sb-outline">Reject</button>
+        </form>
+    </div>
+}
+else
+{
+    <p class="sb-muted">This application has already been reviewed.</p>
+}

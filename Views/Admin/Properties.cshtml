@@ -1,0 +1,69 @@
+@model List<Staybnb.Models.HostProperty>
+@using Staybnb.Services
+@{
+    ViewData["Title"] = "Properties";
+    var approved = (HashSet<int>)ViewBag.ApprovedIds;
+}
+
+@if (!Model.Any())
+{
+    <div class="sb-card sb-empty">
+        <h2>No properties yet</h2>
+        <p class="sb-muted">Properties appear here once hosts apply.</p>
+    </div>
+}
+else
+{
+    <div class="sb-card">
+        @foreach (var p in Model)
+        {
+            var cover = p.Images.FirstOrDefault()?.ImageUrl;
+            var isApproved = approved.Contains(p.Id);
+
+            <div class="sb-prop">
+                @if (cover != null)
+                {
+                    <img src="@cover" class="sb-thumb" alt="Photo of @p.Title" />
+                }
+                else
+                {
+                    <div class="sb-thumb"></div>
+                }
+
+                <div class="sb-prop-body">
+                    <p class="sb-prop-title">@p.Title</p>
+                    <div class="sb-muted">@p.City &middot; @p.PropertyType &middot; hosted by @NameHelper.Display(p.Host)</div>
+                    <div class="mt-1">R @p.PricePerNight.ToString("N0") <span class="sb-muted">per night &middot; @p.Bookings.Count bookings</span></div>
+                    <div class="mt-2">
+                        @if (!isApproved)
+                        {
+                            <span class="sb-badge sb-badge-pending">Not approved</span>
+                        }
+                        else if (p.IsActive)
+                        {
+                            <span class="sb-badge sb-badge-approved">Active</span>
+                        }
+                        else
+                        {
+                            <span class="sb-badge sb-badge-inactive">Inactive</span>
+                        }
+                    </div>
+                </div>
+
+                <div class="sb-prop-actions">
+                    @if (p.IsActive)
+                    {
+                        <a asp-controller="Properties" asp-action="Details" asp-route-id="@p.Id" class="btn btn-sb-outline btn-sm">View</a>
+                    }
+                    @if (isApproved)
+                    {
+                        <form asp-action="ToggleProperty" asp-route-id="@p.Id" method="post"
+                              onsubmit="return confirm('Change the status of this property?');">
+                            <button type="submit" class="btn btn-sb btn-sm">@(p.IsActive ? "Deactivate" : "Activate")</button>
+                        </form>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+}

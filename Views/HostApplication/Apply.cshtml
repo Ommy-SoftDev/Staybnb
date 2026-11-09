@@ -1,0 +1,122 @@
+@model Staybnb.ViewModels.BecomeHostVM
+@{
+    ViewData["Title"] = "Become a Host";
+}
+
+<div class="sb-form-wide">
+    <h1>Become a Host</h1>
+    <p class="sb-muted">Tell us about your property. An admin reviews every application before it goes live.</p>
+
+    <form asp-action="Apply" method="post" enctype="multipart/form-data" class="sb-card">
+        <div asp-validation-summary="All" class="text-danger"></div>
+
+        <h2 class="sb-section-title">About the property</h2>
+
+        <div class="mb-3">
+            <label asp-for="Title" class="form-label"></label>
+            <input asp-for="Title" class="form-control" />
+            <span asp-validation-for="Title" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Description" class="form-label"></label>
+            <textarea asp-for="Description" class="form-control" rows="4"></textarea>
+            <span asp-validation-for="Description" class="text-danger"></span>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label asp-for="PropertyType" class="form-label"></label>
+                <select asp-for="PropertyType" class="form-select">
+                    <option value="">Choose a type</option>
+                    <option>Apartment</option>
+                    <option>House</option>
+                    <option>Villa</option>
+                    <option>Cabin</option>
+                    <option>Cottage</option>
+                </select>
+                <span asp-validation-for="PropertyType" class="text-danger"></span>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label asp-for="MaxGuests" class="form-label"></label>
+                <input asp-for="MaxGuests" class="form-control" />
+                <span asp-validation-for="MaxGuests" class="text-danger"></span>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-4 mb-3">
+                <label asp-for="Bedrooms" class="form-label"></label>
+                <input asp-for="Bedrooms" class="form-control" />
+                <span asp-validation-for="Bedrooms" class="text-danger"></span>
+            </div>
+            <div class="col-md-4 mb-3">
+                <label asp-for="Beds" class="form-label"></label>
+                <input asp-for="Beds" class="form-control" />
+                <span asp-validation-for="Beds" class="text-danger"></span>
+            </div>
+            <div class="col-md-4 mb-3">
+                <label asp-for="Bathrooms" class="form-label"></label>
+                <input asp-for="Bathrooms" class="form-control" />
+                <span asp-validation-for="Bathrooms" class="text-danger"></span>
+            </div>
+        </div>
+
+        <h2 class="sb-section-title">Location</h2>
+
+        <div class="row">
+            <div class="col-md-8 mb-3">
+                <label asp-for="Address" class="form-label"></label>
+                <input asp-for="Address" class="form-control" />
+                <span asp-validation-for="Address" class="text-danger"></span>
+            </div>
+            <div class="col-md-4 mb-3">
+                <label asp-for="City" class="form-label"></label>
+                <input asp-for="City" class="form-control" />
+                <span asp-validation-for="City" class="text-danger"></span>
+            </div>
+        </div>
+
+        <h2 class="sb-section-title">Pricing</h2>
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label asp-for="PricePerNight" class="form-label"></label>
+                <input asp-for="PricePerNight" class="form-control" />
+                <span asp-validation-for="PricePerNight" class="text-danger"></span>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label asp-for="CleaningFee" class="form-label"></label>
+                <input asp-for="CleaningFee" class="form-control" />
+                <span asp-validation-for="CleaningFee" class="text-danger"></span>
+            </div>
+        </div>
+
+        <h2 class="sb-section-title">Amenities</h2>
+
+        <div class="sb-amenity-grid mb-3">
+            @foreach (var amenity in (List<Staybnb.Models.Amenity>)ViewBag.Amenities)
+            {
+                <label class="sb-amenity-check">
+                    <input type="checkbox" name="AmenityIds" value="@amenity.Id" checked="@Model.AmenityIds.Contains(amenity.Id)" />
+                    @amenity.Name
+                </label>
+            }
+        </div>
+
+        <h2 class="sb-section-title">Photos</h2>
+
+        <div class="mb-4">
+            <label asp-for="Images" class="form-label">Property images (at least one)</label>
+            <input asp-for="Images" type="file" multiple accept=".jpg,.jpeg,.png,.webp" class="form-control" />
+            <div class="form-text">JPG, PNG or WEBP, up to 5MB each. The first image is your cover photo.</div>
+            <span asp-validation-for="Images" class="text-danger"></span>
+        </div>
+
+        <button type="submit" class="btn btn-sb">Submit application</button>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

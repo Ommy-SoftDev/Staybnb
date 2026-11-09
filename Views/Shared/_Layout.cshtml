@@ -1,0 +1,155 @@
+@using Microsoft.AspNetCore.Identity
+@using Staybnb.Models
+@using Staybnb.Services
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+@{
+    var signedIn = SignInManager.IsSignedIn(User);
+    var isGuest = User.IsInRole("Guest");
+    var isHost = User.IsInRole("Host");
+    var isAdmin = User.IsInRole("Admin") || User.IsInRole("SuperAdmin");
+    ApplicationUser? me = signedIn ? await UserManager.GetUserAsync(User) : null;
+    var displayName = NameHelper.Display(me);
+    var initial = string.IsNullOrEmpty(displayName) ? "?" : displayName.Substring(0, 1).ToUpper();
+    var q = Context.Request.Query;
+    var hasCheckIn = !string.IsNullOrEmpty(q["checkIn"].ToString());
+    var hasCheckOut = !string.IsNullOrEmpty(q["checkOut"].ToString());
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Staybnb</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/staybnb.css" asp-append-version="true" />
+</head>
+<body>
+    <header class="sb-site-header">
+        <div class="container sb-site-header-inner">
+            <a class="sb-brand" asp-controller="Home" asp-action="Index"><partial name="_LogoMark" />staybnb</a>
+
+            <form asp-controller="Home" asp-action="Index" method="get" class="sb-pill">
+                <label class="sb-pill-seg">
+                    <input type="text" name="city" value="@q["city"]" placeholder="Anywhere" autocomplete="off" aria-label="Where" />
+                </label>
+                <label class="sb-pill-seg">
+                    <input type="@(hasCheckIn ? "date" : "text")" name="checkIn" value="@q["checkIn"]" placeholder="Check-in"
+                           onfocus="this.type='date'" onblur="if(!this.value){this.type='text'}" aria-label="Check-in" />
+                </label>
+                <label class="sb-pill-seg">
+                    <input type="@(hasCheckOut ? "date" : "text")" name="checkOut" value="@q["checkOut"]" placeholder="Check-out"
+                           onfocus="this.type='date'" onblur="if(!this.value){this.type='text'}" aria-label="Check-out" />
+                </label>
+                <label class="sb-pill-seg">
+                    <input type="number" name="guests" min="1" value="@q["guests"]" placeholder="Add guests" aria-label="Guests" />
+                </label>
+                <button type="submit" class="sb-pill-btn" aria-label="Search">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                </button>
+            </form>
+
+            <div class="sb-site-right">
+                @if (isGuest)
+                {
+                    <a class="sb-top-link" asp-controller="HostApplication" asp-action="Status">Host Application Status</a>
+                    <a class="sb-top-link" asp-controller="HostApplication" asp-action="Apply">Become a Host</a>
+                }
+                else if (!signedIn)
+                {
+                    <a class="sb-top-link" asp-controller="Account" asp-action="Login" asp-route-returnUrl="@Url.Action("Apply", "HostApplication")">Become a Host</a>
+                }
+                else if (isHost)
+                {
+                    <a class="sb-top-link" asp-controller="Host" asp-action="Dashboard">Host Dashboard</a>
+                }
+                else if (isAdmin)
+                {
+                    <a class="sb-top-link" asp-controller="Admin" asp-action="Dashboard">Admin Dashboard</a>
+                }
+
+                <div class="dropdown">
+                    <button class="sb-menu-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Menu">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                        @if (signedIn)
+                        {
+                            <span class="sb-avatar">@initial</span>
+                        }
+                        else
+                        {
+                            <span class="sb-avatar sb-avatar-grey">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c0-4 4-6 8-6s8 2 8 6z"></path></svg>
+                            </span>
+                        }
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        @if (!signedIn)
+                        {
+                            <li><a class="dropdown-item" asp-controller="Account" asp-action="Login">Log in</a></li>
+                            <li><a class="dropdown-item" asp-controller="Account" asp-action="Register">Sign up</a></li>
+                        }
+                        else
+                        {
+                            <li><span class="dropdown-item-text sb-muted">@displayName</span></li>
+                            <li><hr class="dropdown-divider" /></li>
+
+                            @if (isGuest)
+                            {
+                                <li><a class="dropdown-item" asp-controller="Bookings" asp-action="MyBookings">My Bookings</a></li>
+                                <li><a class="dropdown-item" asp-controller="Wishlist" asp-action="Index">Wishlist</a></li>
+                            }
+                            @if (isHost)
+                            {
+                                <li><a class="dropdown-item" asp-controller="Host" asp-action="Dashboard">Host Dashboard</a></li>
+                                <li><a class="dropdown-item" asp-controller="Host" asp-action="MyProperties">My Properties</a></li>
+                                <li><a class="dropdown-item" asp-controller="HostBookings" asp-action="Index">Booking Requests</a></li>
+                            }
+                            @if (isAdmin)
+                            {
+                                <li><a class="dropdown-item" asp-controller="Admin" asp-action="Dashboard">Admin Dashboard</a></li>
+                            }
+                            <li>
+                                <a class="dropdown-item d-flex justify-content-between" asp-controller="Messages" asp-action="Inbox">
+                                    Messages @await Component.InvokeAsync("MessageBadge", new { style = "Badge" })
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item d-flex justify-content-between" asp-controller="Notifications" asp-action="Index">
+                                    Notifications @await Component.InvokeAsync("NotificationBell", new { style = "Badge" })
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider" /></li>
+                            <li>
+                                <form asp-controller="Account" asp-action="Logout" method="post">
+                                    <button type="submit" class="dropdown-item">Log out</button>
+                                </form>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main role="main" class="container sb-main">
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success">@TempData["Success"]</div>
+        }
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger">@TempData["Error"]</div>
+        }
+        @RenderBody()
+    </main>
+
+    <footer class="sb-footer">
+        <div class="container">&copy; 2026 Staybnb</div>
+    </footer>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

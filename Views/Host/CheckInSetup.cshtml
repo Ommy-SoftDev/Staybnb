@@ -1,0 +1,49 @@
+@model Staybnb.ViewModels.CheckInSetupVM
+@{
+    ViewData["Title"] = "Check-in process";
+}
+
+<div class="sb-form-wide">
+    <h1>Check-in process</h1>
+    <p class="sb-muted">Set the rules and the documents guests must upload for <strong>@Model.PropertyTitle</strong>. Guests complete this after you approve their booking.</p>
+
+    <form asp-action="CheckInSetup" method="post" class="sb-card">
+        <div asp-validation-summary="All" class="text-danger"></div>
+        <input type="hidden" asp-for="PropertyId" />
+        <input type="hidden" asp-for="PropertyTitle" />
+
+        <div class="mb-3">
+            <label asp-for="Title" class="form-label"></label>
+            <input asp-for="Title" class="form-control" />
+            <span asp-validation-for="Title" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="RulesText" class="form-label"></label>
+            <textarea asp-for="RulesText" class="form-control" rows="6"></textarea>
+            <div class="form-text">For example: No smoking indoors. Quiet hours start at 22:00. Check-in is from 14:00.</div>
+        </div>
+
+        <h2 class="sb-section-title">Required documents</h2>
+
+        <div class="form-check mb-2">
+            <input asp-for="RequireId" class="form-check-input" />
+            <label asp-for="RequireId" class="form-check-label"></label>
+        </div>
+        <div class="form-check mb-2">
+            <input asp-for="RequirePassport" class="form-check-input" />
+            <label asp-for="RequirePassport" class="form-check-label"></label>
+        </div>
+        <div class="form-check mb-4">
+            <input asp-for="RequireProofOfAddress" class="form-check-input" />
+            <label asp-for="RequireProofOfAddress" class="form-check-label"></label>
+        </div>
+
+        <button type="submit" class="btn btn-sb">Save check-in process</button>
+        <a asp-action="MyProperties" class="btn btn-sb-outline">Cancel</a>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

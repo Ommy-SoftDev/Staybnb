@@ -1,0 +1,75 @@
+@model Staybnb.ViewModels.NotificationsVM
+@{
+    ViewData["Title"] = "Notifications";
+}
+
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <h1 class="mb-0">
+        Notifications
+        @if (Model.UnreadCount > 0)
+        {
+            <span class="sb-count">@Model.UnreadCount new</span>
+        }
+    </h1>
+
+    @if (Model.UnreadCount > 0)
+    {
+        <form asp-action="MarkAllRead" method="post">
+            <button type="submit" class="btn btn-sb-outline btn-sm">Mark all as read</button>
+        </form>
+    }
+</div>
+
+<p class="sb-filter mt-3">
+    <a asp-action="Index">All (@Model.TotalCount)</a>
+    <a asp-action="Index" asp-route-filter="unread">Unread (@Model.UnreadCount)</a>
+</p>
+
+@if (!Model.Items.Any())
+{
+    <div class="sb-card sb-empty">
+        <h2>@(Model.Filter == "unread" ? "Nothing unread" : "No notifications yet")</h2>
+        <p class="sb-muted">Updates about your bookings, applications and messages will show up here.</p>
+    </div>
+}
+else
+{
+    <div class="sb-notif-layout">
+        <div class="sb-card p-0" style="overflow:hidden">
+            @foreach (var n in Model.Items)
+            {
+                var isSelected = Model.Selected != null && Model.Selected.Id == n.Id;
+                <a class="sb-notif-item @(n.IsRead ? "" : "unread") @(isSelected ? "selected" : "")"
+                   asp-action="Index" asp-route-selectedId="@n.Id" asp-route-filter="@(Model.Filter == "unread" ? "unread" : null)">
+                    <div class="sb-notif-title">@n.Title</div>
+                    <div class="sb-notif-body">@n.Body</div>
+                    <div class="sb-notif-time">@n.CreatedAt.ToString("dd MMM yyyy HH:mm")</div>
+                </a>
+            }
+        </div>
+
+        <div class="sb-card">
+            @if (Model.Selected == null)
+            {
+                <p class="sb-muted mb-0">Select a notification to read it.</p>
+            }
+            else
+            {
+                <h2>@Model.Selected.Title</h2>
+                <div class="sb-notif-time mb-3">@Model.Selected.CreatedAt.ToString("dd MMM yyyy HH:mm") &middot; Read</div>
+                <p>@Model.Selected.Body</p>
+
+                <div class="d-flex gap-2 mt-3">
+                    @if (Model.ActionUrl != null)
+                    {
+                        <a href="@Model.ActionUrl" class="btn btn-sb btn-sm">Take action</a>
+                    }
+                    <form asp-action="Delete" asp-route-id="@Model.Selected.Id" method="post"
+                          onsubmit="return confirm('Delete this notification?');">
+                        <button type="submit" class="btn btn-sb-outline btn-sm">Delete</button>
+                    </form>
+                </div>
+            }
+        </div>
+    </div>
+}

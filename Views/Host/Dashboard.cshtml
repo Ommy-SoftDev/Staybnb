@@ -1,0 +1,59 @@
+@model Staybnb.ViewModels.HostDashboardVM
+@{
+    ViewData["Title"] = "Host Dashboard";
+}
+
+<div class="sb-card mb-3">
+    <h2 class="sb-welcome-title">Welcome back, @Model.HostName!</h2>
+    <p class="sb-muted mb-3">Here's what's happening with your properties today.</p>
+    <div class="sb-actions-row" style="margin-top:0">
+        <a asp-action="AddProperty" class="btn btn-sb-outline btn-sm">+ Add New Property</a>
+        <a asp-controller="HostBookings" asp-action="Index" class="btn btn-sb-outline btn-sm">View Booking Requests</a>
+        <a asp-action="Earnings" class="btn btn-sb-outline btn-sm">View Earnings Report</a>
+    </div>
+</div>
+
+<div class="sb-stats" style="margin-top:0">
+    <div class="sb-stat">
+        <div class="sb-stat-value">@Model.TotalProperties</div>
+        <div class="sb-stat-label">Total Properties</div>
+        <div class="sb-stat-note sb-good">@Model.ActiveProperties active</div>
+    </div>
+    <div class="sb-stat @(Model.PendingBookings > 0 ? "sb-stat-attention" : "")">
+        <div class="sb-stat-value">@Model.TotalBookings</div>
+        <div class="sb-stat-label">Total Bookings</div>
+        <div class="sb-stat-note sb-good">@Model.BookingsThisMonth this month, @Model.PendingBookings pending</div>
+    </div>
+    <div class="sb-stat">
+        <div class="sb-stat-value">R @Model.TotalEarnings.ToString("N0")</div>
+        <div class="sb-stat-label">Total Earnings</div>
+        <div class="sb-stat-note sb-good">R @Model.EarningsThisMonth.ToString("N0") this month</div>
+    </div>
+    <div class="sb-stat">
+        <div class="sb-stat-value">@Model.AverageRating.ToString("0.0")</div>
+        <div class="sb-stat-label">Average Rating</div>
+        <div class="sb-stat-note sb-good">@Model.ReviewCount reviews</div>
+    </div>
+</div>
+
+<div class="sb-card">
+    <h2 class="sb-panel-title" style="margin-top:0">Performance Metrics</h2>
+    <div class="sb-metrics">
+        <div class="sb-metric">
+            <div class="sb-metric-value">@Model.OccupancyRate.ToString("0.0")%</div>
+            <div class="sb-muted">Occupancy rate (30 days)</div>
+        </div>
+        <div class="sb-metric">
+            <div class="sb-metric-value">@Model.AcceptanceRate.ToString("0")%</div>
+            <div class="sb-muted">Booking acceptance rate</div>
+        </div>
+        <div class="sb-metric">
+            <div class="sb-metric-value">R @Model.AverageNightlyRate.ToString("N0")</div>
+            <div class="sb-muted">Average nightly rate</div>
+        </div>
+        <div class="sb-metric">
+            <div class="sb-metric-value">R @Model.AverageEarningsPerBooking.ToString("N0")</div>
+            <div class="sb-muted">Average earnings per booking</div>
+        </div>
+    </div>
+</div>

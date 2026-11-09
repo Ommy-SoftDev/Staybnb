@@ -1,0 +1,6 @@
+@model int
+<div class="sb-steps">
+    <span class="sb-step @(Model == 1 ? "active" : "done")">1. House rules</span>
+    <span class="sb-step @(Model == 2 ? "active" : (Model > 2 ? "done" : ""))">2. Documents</span>
+    <span class="sb-step @(Model == 3 ? "active" : "")">3. Submit</span>
+</div>

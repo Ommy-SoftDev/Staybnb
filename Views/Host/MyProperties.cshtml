@@ -1,0 +1,81 @@
+@model List<Staybnb.ViewModels.HostPropertyRowVM>
+@{
+    ViewData["Title"] = "My Properties";
+}
+
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <h1 class="mb-0">My properties</h1>
+    <a asp-action="AddProperty" class="btn btn-sb">Add new property</a>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="sb-card sb-empty mt-3">
+        <h2>No properties yet</h2>
+        <p class="sb-muted">Add your first property to start hosting.</p>
+        <a asp-action="AddProperty" class="btn btn-sb">Add new property</a>
+    </div>
+}
+else
+{
+    <div class="sb-card mt-3">
+        @foreach (var row in Model)
+        {
+            var p = row.Property;
+            var cover = p.Images.FirstOrDefault()?.ImageUrl;
+            var approved = row.ApplicationStatus == Staybnb.Enums.ApplicationStatus.Approved;
+
+            <div class="sb-prop">
+                @if (cover != null)
+                {
+                    <img src="@cover" class="sb-thumb" alt="Photo of @p.Title" />
+                }
+                else
+                {
+                    <div class="sb-thumb"></div>
+                }
+
+                <div class="sb-prop-body">
+                    <p class="sb-prop-title">@p.Title</p>
+                    <div class="sb-muted">@p.City, South Africa &middot; @p.PropertyType</div>
+                    <div class="sb-muted">@Staybnb.Services.PropertyText.Summary(p)</div>
+                    <div class="mt-1">R @p.PricePerNight.ToString("N0") <span class="sb-muted">per night</span></div>
+                    <div class="sb-muted mt-1">@p.Bookings.Count bookings &middot; @p.Reviews.Count reviews</div>
+                    <div class="mt-2">
+                        @if (row.ApplicationStatus == Staybnb.Enums.ApplicationStatus.Pending)
+                        {
+                            <span class="sb-badge sb-badge-pending">Pending review</span>
+                        }
+                        else if (row.ApplicationStatus == Staybnb.Enums.ApplicationStatus.Rejected)
+                        {
+                            <span class="sb-badge sb-badge-rejected">Rejected</span>
+                        }
+                        else if (p.IsActive)
+                        {
+                            <span class="sb-badge sb-badge-approved">Active</span>
+                        }
+                        else
+                        {
+                            <span class="sb-badge sb-badge-inactive">Inactive</span>
+                        }
+                    </div>
+                </div>
+
+                <div class="sb-prop-actions">
+                    @if (p.IsActive)
+                    {
+                        <a asp-controller="Properties" asp-action="Details" asp-route-id="@p.Id" class="btn btn-sb-outline btn-sm">View details</a>
+                    }
+                    <a asp-action="EditProperty" asp-route-id="@p.Id" class="btn btn-sb-outline btn-sm">Edit</a>
+                    <a asp-action="CheckInSetup" asp-route-propertyId="@p.Id" class="btn btn-sb-outline btn-sm">Check-in process</a>
+                    @if (approved)
+                    {
+                        <form asp-action="ToggleActive" asp-route-id="@p.Id" method="post">
+                            <button type="submit" class="btn btn-sb btn-sm">@(p.IsActive ? "Deactivate" : "Activate")</button>
+                        </form>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+}

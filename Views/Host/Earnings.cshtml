@@ -1,0 +1,68 @@
+@model Staybnb.ViewModels.HostEarningsVM
+@{
+    ViewData["Title"] = "Earnings";
+}
+
+<div class="sb-stats" style="margin-top:0">
+    <div class="sb-stat">
+        <div class="sb-stat-label">Total earnings</div>
+        <div class="sb-stat-value">R @Model.Total.ToString("N0")</div>
+    </div>
+    <div class="sb-stat">
+        <div class="sb-stat-label">This month</div>
+        <div class="sb-stat-value">R @Model.ThisMonth.ToString("N0")</div>
+    </div>
+    <div class="sb-stat">
+        <div class="sb-stat-label">Paid bookings</div>
+        <div class="sb-stat-value">@Model.PaidBookings</div>
+    </div>
+</div>
+
+<div class="sb-two-col">
+    <div>
+        <h2 class="sb-panel-title" style="margin-top:0">Last 6 months</h2>
+        <div class="sb-card">
+            <table class="sb-table">
+                <thead><tr><th>Month</th><th class="text-end">Earnings</th></tr></thead>
+                <tbody>
+                    @foreach (var m in Model.Months)
+                    {
+                        <tr>
+                            <td>@m.Label</td>
+                            <td class="text-end">R @m.Amount.ToString("N2")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div>
+        <h2 class="sb-panel-title" style="margin-top:0">Paid bookings</h2>
+        @if (!Model.Payments.Any())
+        {
+            <div class="sb-card sb-empty">
+                <h2>No earnings yet</h2>
+                <p class="sb-muted">Earnings appear here once you approve a booking.</p>
+            </div>
+        }
+        else
+        {
+            <div class="sb-card">
+                <table class="sb-table">
+                    <thead><tr><th>Property</th><th>Stay</th><th class="text-end">Amount</th></tr></thead>
+                    <tbody>
+                        @foreach (var p in Model.Payments)
+                        {
+                            <tr>
+                                <td>@p.Booking.Property.Title<br /><span class="sb-muted">@Staybnb.Services.NameHelper.Display(p.Booking.Guest)</span></td>
+                                <td>@p.Booking.CheckInDate.ToString("dd MMM") to @p.Booking.CheckOutDate.ToString("dd MMM yyyy")</td>
+                                <td class="text-end">R @p.Amount.ToString("N2")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>

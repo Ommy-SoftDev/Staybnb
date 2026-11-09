@@ -1,0 +1,40 @@
+@model Staybnb.ViewModels.CheckInFlowVM
+@{
+    ViewData["Title"] = "Check-in: house rules";
+    var b = Model.Booking;
+}
+
+<div class="sb-form-wide">
+    <h1>Check in to @b.Property.Title</h1>
+    <p class="sb-muted">@b.CheckInDate.ToString("dd MMM yyyy") to @b.CheckOutDate.ToString("dd MMM yyyy")</p>
+
+    <partial name="_CheckInSteps" model="1" />
+
+    <div class="sb-card">
+        <h2>House rules</h2>
+
+        @if (Model.Config.Rules.Any())
+        {
+            <ul class="sb-rules">
+                @foreach (var rule in Model.Config.Rules)
+                {
+                    <li>@rule</li>
+                }
+            </ul>
+        }
+        else
+        {
+            <p class="sb-muted">The host has not added any special rules for this stay.</p>
+        }
+
+        <form asp-action="Rules" method="post" class="mt-3">
+            <input type="hidden" name="bookingId" value="@b.Id" />
+            <div class="form-check mb-3">
+                <input type="checkbox" id="accept" name="accept" value="true" class="form-check-input" required />
+                <label for="accept" class="form-check-label">I have read and accept the house rules</label>
+            </div>
+            <button type="submit" class="btn btn-sb">Continue</button>
+            <a asp-controller="Bookings" asp-action="MyBookings" class="btn btn-sb-outline">Back</a>
+        </form>
+    </div>
+</div>
